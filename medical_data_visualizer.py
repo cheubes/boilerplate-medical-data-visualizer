@@ -18,29 +18,28 @@ def draw_cat_plot():
     # Create DataFrame for cat plot using `pd.melt` using just the values from 'cholesterol', 'gluc', 'smoke', 'alco', 'active', and 'overweight'.
     df_cat = df.melt(id_vars=['active', 'alco', 'cholesterol', 'gluc', 'overweight', 'smoke', 'cardio'])
 
-
     # Group and reformat the data to split it by 'cardio'. Show the counts of each feature. You will have to rename one of the collumns for the catplot to work correctly.
     df_cat = df_cat.groupby(['active', 'alco', 'cholesterol', 'gluc', 'overweight', 'smoke', 'cardio']).size().rename('total').reset_index().melt(['total', 'cardio'])
 
     # Draw the catplot with 'sns.catplot()'
-    plt.figure('cat')
-    sns.catplot(data = df_cat, x='variable', y='total', hue='value', col='cardio', kind="bar", ci = None)
+    sns.catplot(data = df_cat, x='variable', y='total', hue='value', col='cardio', kind='bar', ci = None)
+    fig = plt.gcf()
 
     # Do not modify the next two lines
-    plt.gcf().savefig('catplot.png')
-    return plt.gcf()
+    fig.savefig('catplot.png')
+    return fig
 
 
 # Draw Heat Map
 def draw_heat_map():
     # Clean the data
     df_heat = df.copy(deep=True)
-    df_heat = df_heat.loc[df_heat['ap_lo'] <= df_heat['ap_hi']]
-    df_heat = df_heat.loc[df_heat['height'] >= df_heat['height'].quantile(0.025)]
-    df_heat = df_heat.loc[df_heat['height'] <= df_heat['height'].quantile(0.975)]
-    df_heat = df_heat.loc[df_heat['weight'] >= df_heat['weight'].quantile(0.025)]
-    df_heat = df_heat.loc[df_heat['weight'] <= df_heat['weight'].quantile(0.975)]
-
+    df_heat = df_heat[
+        (df_heat['ap_lo'] <= df_heat['ap_hi']) &
+        (df_heat['height'] >= df_heat['height'].quantile(0.025)) &
+        (df_heat['height'] <= df_heat['height'].quantile(0.975)) &
+        (df_heat['weight'] >= df_heat['weight'].quantile(0.025)) &
+        (df_heat['weight'] <= df_heat['weight'].quantile(0.975))]
 
     # Calculate the correlation matrix
     corr = df_heat.corr()
@@ -48,15 +47,12 @@ def draw_heat_map():
     # Generate a mask for the upper triangle
     mask = np.triu(np.ones_like(corr, dtype=bool))
 
-
-
     # Set up the matplotlib figure
-    plt.figure('heat')
+    fig, ax = plt.subplots(figsize=(11, 9))
 
     # Draw the heatmap with 'sns.heatmap()'
     sns.heatmap(corr, mask=mask,annot=True, fmt='.1f', vmax=.3, center=0, square=True, linewidths=.5, cbar_kws={'shrink': .5})
 
-
     # Do not modify the next two lines
-    plt.gcf().savefig('heatmap.png')
-    return plt.gcf()
+    fig.savefig('heatmap.png')
+    return fig
